@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Stocks Master</title>
+{% endblock %}
+
+{% block body %}
+
+
+<h1 class="header" style="text-align: center">Databse - News ({{records}})</h1>
+
+<div class="content">
+    <h2>All News</h2>
+    {{ pagination.info }}
+    {{ pagination.links }}
+    {% for article in news %}
+    <tr>
+        <td>{{ loop.index + pagination.skip }}</td>
+        <td><b>Title:</b> {{article['title']}}</td><br>
+        <td><b>Author:</b> {{article['author']}}</td><br>
+        <td><b>Date Published:</b> {{article['date']}}</td><br>
+        <td><b>Company Ticker:</b> {{article['ticker']}}</td><br>
+        <td><b>Source:</b> {{article['source']}}</td><br>
+        <td><b>Description:</b> {{article['description']}}</td><br>
+        <br><br>
+    </tr>
+    {% endfor %}
+    {{ pagination.links }}
+
+    </div>
+</div>
+
+{% endblock %}

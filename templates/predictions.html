@@ -1,0 +1,173 @@
+{% extends 'layout.html' %}
+
+{% block title %}Trends{% endblock %}
+
+{% block content %}
+		<!-- Content Wrapper. Contains page content -->
+		<div class="content-wrapper">
+			<!-- Content Header (Page header) -->
+			<div class="content-header">
+			<div class="container-fluid">
+				<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0 text-dark">Predictions</h1>
+				</div><!-- /.col -->
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+					<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+					<li class="breadcrumb-item active"></li>
+					</ol>
+				</div><!-- /.col -->
+				</div><!-- /.row -->
+			</div><!-- /.container-fluid -->
+			</div>
+			<!-- /.content-header -->
+			    <!-- Main content -->
+			<section class="content">
+			<div class="container-fluid">
+        <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title">Market Data</h5>
+              <div class="card-tools" id="periodMenu">
+                <button type="button" class="btn btn-tool btn-outline-dark" id="1d">1D</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="5d">5D</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="1m">1M</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="3m">3M</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="6m">6M</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="ytd">YTD</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="1yr">1Y</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="3yr">3Y</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="5yr">5Y</button>
+                <button type="button" class="btn btn-tool btn-outline-dark" id="max">MAX</button>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="chart">
+                    <canvas id="priceChart" height="320" style="height: 320px;"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="row">
+    <section class="col-lg-12 connectedSortable">
+      <!-- Custom tabs (Charts with tabs)-->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-chart-pie mr-1"></i>
+            Interests over time
+          </h3>
+          <div class="card-tools">
+          </div>
+        </div><!-- /.card-header -->
+        <div class="card-body">
+          <div class="tab-content p-0">
+            <div class="chart">
+              <!-- Trends Chart Canvas -->
+              <canvas id="trendsChart" height="300" style="height: 300px;"></canvas>
+            </div>
+            <!-- /.chart-responsive -->
+        </div>
+    </div>
+</div><!-- /.card-body -->
+
+
+
+<section class="col-lg-13 connectedSortable">
+    <!-- Custom tabs (Charts with tabs)-->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-plus" mr-1"></i>
+          Compare
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div><!-- /.card-header -->
+      <div class="card-body">
+        <div class="tab-content p-0">
+            <!-- form start -->
+            <div class="form-group row">
+              <label for="ticker" class="col-sm-2 col-form-label">Keywords</label>
+              <div class="col-sm-10">
+                <input type="text" autocomplete="off" class="form-control" name="ticker" id="ticker" placeholder="Interest over time" onkeyup="liveSearch(this.value)">
+                <br>
+                <div class="dropdown" id="results"></div> <!-- Results will be printed here -->
+              </div>
+            </div>
+
+
+        </div>
+    </div>
+</div><!-- /.card-body -->
+</div>
+
+
+<script>
+  var iot_data = {{iot | tojson}};
+  var price_data_1d = {{price_hist[0] | tojson}};
+  var price_data_5d = {{price_hist[1] | tojson}};
+  var price_data_1m = {{price_hist[2] | tojson}};
+  var price_data_3m = {{price_hist[3] | tojson}};
+  var price_data_6m = {{price_hist[4] | tojson}};
+  var price_data_ytd = {{price_hist[5] | tojson}};
+  var price_data_1yr = {{price_hist[6] | tojson}};
+  var price_data_3yr = {{price_hist[7] | tojson}};
+  var price_data_5yr = {{price_hist[8] | tojson}};
+  var price_data_max = {{price_hist[9] | tojson}};
+
+  function addStock(ticker, name){
+      document.getElementById("ticker").value = ticker;
+      document.getElementById("name").value = name;
+  }
+  function liveSearch(value){
+    value = value.trim(); // remove any spaces around the text
+    if(value != ""){ // don't make requests with an empty string
+      $.ajax({
+        url: "search",
+        data: {searchText: value},
+        dataType: "json",
+        success: function(data){
+          var res = "";
+          // create the html with results
+          for(i in data.results){
+            res+= '<a href="#' + data.results[i][0] + '"onclick="addStock(\'' + data.results[i][0] + '\''  + ',' + '\''  + data.results[i][1] + '\')">'
+            res += "<div>"
+              for(j=0; j<2; j++){
+                if (j<1){
+                  res += data.results[i][j] + " | ";
+                }
+                else{
+                  res += data.results[i][j]
+                }
+                
+            }
+            res+="</div>";
+            res+="</a>";
+          }
+          $("#results").html(res);
+          
+        }
+
+      });
+    }
+    else{
+      $("#results").html(""); // set the results empty in case of empty string
+    }
+  }
+</script>
+    
+{% endblock %}

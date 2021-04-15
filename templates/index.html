@@ -1,0 +1,235 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+		<!-- Content Wrapper. Contains page content -->
+		<div class="content-wrapper">
+			<!-- Content Header (Page header) -->
+			<div class="content-header">
+			<div class="container-fluid">
+				<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0 text-dark">Home</h1>
+				</div><!-- /.col -->
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+					<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+					<li class="breadcrumb-item active"></li>
+					</ol>
+				</div><!-- /.col -->
+				</div><!-- /.row -->
+			</div><!-- /.container-fluid -->
+			</div>
+			<!-- /.content-header -->
+			    <!-- Main content -->
+			<section class="content">
+			<div class="container-fluid">
+    <div class="row">
+    <section class="col-lg-12 connectedSortable">
+      <!-- Custom tabs (Charts with tabs)-->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-chart-pie mr-1"></i>
+            Portfolio
+          </h3>
+          <div class="card-tools">
+          </div>
+        </div><!-- /.card-header -->
+        <div class="card-body">
+          <div class="tab-content p-0">
+            {% if stocks|length < 1 %}
+            <h4 style="text-align: center">There are no stocks. Add one below!</h4>
+            {% else %}
+            <!-- /.card-header -->
+            <div class="card-body table-responsive-sortable p-0" style="height: 720px;">
+                <table class="table table-head-fixed text-nowrap" id="portfolio">
+                <thead>
+                <tr class="table-info">
+                    <th onclick="sortTable(0)">Ticker<i id="ticker_col" class="fa fa-fw fa-sort"></i></th>
+                    <th onclick="sortTable(1)">Company<i class="fa fa-fw fa-sort"></i></th>
+                    <th>Industry</th>
+                    <th>Market Cap</th>
+                    <th>Exchange</th>
+                    <th onclick="sortTable(2)">Added<i class="fa fa-fw fa-sort"></i></th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for stock in stocks %}
+                    <tr>
+                        <td>{{ stock[2] }}</td>
+                        <td>{{ stock[3] }}</td>
+                        <td>{{ stock[4] }}</td>
+                        <td>{{ stock[5] | currencyFormat }}</td>
+                        <td>{{ stock[6] }}</td>
+                        <td>{{ stock[7] }}</td>
+                        <td>
+                            <a href="/view/{{stock[2]}}"><i class="fas fa-eye"></i></a>
+                            <a href="/update/{{stock[1]}}"><i class="fas fa-pen"></i></a>
+                            <a href="/delete/{{stock[0]}}"><i class="fas fa-trash"></i></a>                            
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div><!-- /.card-body -->
+
+
+
+<section class="col-lg-13 connectedSortable">
+    <!-- Custom tabs (Charts with tabs)-->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-plus" mr-1"></i>
+          Add Stock
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div><!-- /.card-header -->
+      <div class="card-body">
+        <div class="tab-content p-0">
+            <!-- form start -->
+            <form class=form-horizontal" action="{{ url_for('addStock') }}" method="POST" role="form" autocomplete="off">
+                    <div class="card-body">
+                      <div class="form-group row">
+                        <label for="ticker" class="col-sm-2 col-form-label">Ticker</label>
+                        <div class="col-sm-10">
+                          <input type="text" autocomplete="off" class="form-control" name="ticker" id="ticker" placeholder="Symbol lookup" onkeyup="liveSearch(this.value)">
+		                      <br>
+                          <div class="dropdown" id="results"></div> <!-- Results will be printed here -->
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label for="name" class="col-sm-2 col-form-label">Company Name</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" name="name" id="name" placeholder="Company Name" disabled>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+               <!-- /.card-body -->
+               <div class="card-footer">
+                <button type="submit" class="btn btn-info float-right">Add Stock</button>
+              </div>
+              <!-- /.card-footer -->
+              </form>
+        </div>
+    </div>
+</div><!-- /.card-body -->
+</div>
+
+<script>
+  function addStock(ticker, name){
+      document.getElementById("ticker").value = ticker;
+      document.getElementById("name").value = name;
+  }
+  function liveSearch(value){
+    value = value.trim(); // remove any spaces around the text
+    if(value != ""){ // don't make requests with an empty string
+      $.ajax({
+        url: "search",
+        data: {searchText: value},
+        dataType: "json",
+        success: function(data){
+          var res = "";
+          // create the html with results
+          for(i in data.results){
+            res+= '<a href="#' + data.results[i][0] + '"onclick="addStock(\'' + data.results[i][0] + '\''  + ',' + '\''  + data.results[i][1] + '\')">'
+            res += "<div>"
+              for(j=0; j<2; j++){
+                if (j<1){
+                  res += data.results[i][j] + " | ";
+                }
+                else{
+                  res += data.results[i][j]
+                }
+                
+            }
+            res+="</div>";
+            res+="</a>";
+          }
+          $("#results").html(res);
+          
+        }
+
+      });
+    }
+    else{
+      $("#results").html(""); // set the results empty in case of empty string
+    }
+  }
+
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("portfolio");
+  switching = true;
+  // Set the sorting direction to ascending:
+  dir = "asc";
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    for (i = 1; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /* Check if the two rows should switch place,
+      based on the direction, asc or desc: */
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+        if (Number(x.innerHTML) > Number(y.innerHTML)) {
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount ++;
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+
+</script>
+    
+{% endblock %}

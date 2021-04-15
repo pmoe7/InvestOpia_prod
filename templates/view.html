@@ -1,0 +1,549 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1 class="m-0 text-dark">{{stock[1]}}: {{stock[2]}}</h1>
+        </div><!-- /.col -->
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="#">View Stock</a></li>
+            <li class="breadcrumb-item active">{{stock[2]}}</li>
+            </ol>
+        </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+      <!-- Small boxes (Stat box) -->
+      <div class="row">
+        <div class="col-lg-4 col-4">
+          <!-- small box -->
+          <div class="small-box bg-warning">
+            <div class="inner">
+              <h3>{{top_news|length}}</h3>
+              <p>Breaking News Articles</p>
+            </div>
+            <div class="icon">
+                <i class="far fa-newspaper"></i>
+            </div>
+            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-4 col-4">
+          <!-- small box -->
+          <div class="small-box bg-success">
+            <div class="inner">
+              <h3>{{all_news|length}}</h3>
+              <p>Other News</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-newspaper"></i>
+            </div>
+            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-4 col-4">
+          <!-- small box -->
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{tweets|length}}</h3>
+              <p>Tweets</p>
+            </div>
+            <div class="icon">
+                <i class="fab fa-twitter"></i>
+            </div>
+            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- ./col -->
+      </div>
+      <!-- /.row -->
+{% if stock_data %}
+<div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Market Data</h5>
+                <div class="card-tools" id="periodMenu">
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="1d">1D</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="5d">5D</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="1m">1M</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="3m">3M</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="6m">6M</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="ytd">YTD</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="1yr">1Y</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="3yr">3Y</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="5yr">5Y</button>
+                  <button type="button" class="btn btn-tool btn-outline-dark" id="max">MAX</button>
+                  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                </div>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-7">
+                    <p class="text-center">
+                      <strong><h2>${{price}} </strong>
+                          {% if (price - prev_close) > 0 %}
+                          <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> {{(price - prev_close) | round(2, 'floor')}} ({{((price - prev_close) / prev_close * 100) | round(2, 'floor') }}%)</span>
+                          {%else%}
+                          <span class="description-percentage text-danger"><i class="fas fa-caret-down"></i> {{(price - prev_close) | round(2, 'floor')}} ({{((price - prev_close) / prev_close * 100) | round(2, 'floor')}}%)</span>
+                          {%endif%}
+                        </h2> 
+                    </p>
+                    <div class="chart">
+                      <!-- Price Chart Canvas -->
+                      <canvas id="priceChart" height="370" style="height: 370px;"></canvas>
+                    </div>
+                    <!-- /.chart-responsive -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-md-5">
+                    <p class="text-center">
+                      <strong>Analyst Recommendations</strong>
+                    </p>
+                    {% if numRecom > 0 %}
+                      <div class="card-body table-responsive p-0" style="height: 280px;">
+                        <table class="table table-head-fixed text-nowrap">
+                        <thead>
+                        <tr>
+                            <th>Firm</th>
+                            <th>To Grade</th>
+                            <th>From Grade</th>
+                            <th>Change</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        
+                          {% for recommendation in analyst_recom %}
+                              <tr>
+                                  <td>{{ recommendation[0] }}</td>
+                                  <td>{{ recommendation[1]}}</td>
+                                  <td>{{ recommendation[2] }}</td>
+                                  <td>{{ recommendation[3]}}</td>
+                              </tr>
+                          {% endfor %}
+                        {% else %}
+                          No analyst recommendations found...
+                        {% endif %}
+                        </tbody>
+                    </table>
+                    </div>
+                    {% if numRecom > 0 %}
+                     <!-- /.progress-group -->
+                    <div class="progress-group">
+                      Hold
+                      <span class="float-right"><b>{{numHold}}</b>/{{numRecom}}</span>
+                      <div class="progress progress-sm">
+                        <div class="progress-bar bg-primary" style="width: {{(numHold/numRecom*100)|round}}%"></div>
+                      </div>
+                    </div>
+                    <!-- /.progress-group -->
+
+                    <div class="progress-group">
+                      Sell
+                      <span class="float-right"><b>{{numSell}}</b>/{{numRecom}}</span>
+                      <div class="progress progress-sm">
+                        <div class="progress-bar bg-danger" style="width: {{(numSell/numRecom*100)|round}}%"></div>
+                      </div>
+                    </div>
+
+                    <!-- /.progress-group -->
+                    <div class="progress-group">
+                      <span class="progress-text">Buy</span>
+                      <span class="float-right"><b>{{numBuy}}</b>/{{numRecom}}</span>
+                      
+                      <div class="progress progress-sm">
+                        <div class="progress-bar bg-success" style="width: {{(numBuy/numRecom*100)|round}}%"></div>
+                      </div>
+                    </div>
+                  </div>
+                  {%endif%}
+                  <!-- /.col -->
+                </div>
+                <!-- /.row -->
+              </div>
+              <!-- ./card-body -->
+              <div class="card-footer">
+                {% if price %}
+                <div class="row">
+                  <div class="col-sm-2 col-6">
+                    
+                    <div class="description-block border-right">
+                      <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 2%</span>
+                      <h5 class="description-header">{{stock_data.info['regularMarketOpen'] | currencyFormat}}</h5>
+                      <span class="description-text">OPEN</span>
+                    </div>
+
+                    <!-- /.description-block -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-sm-2 col-6">
+                    <div class="description-block border-right">
+                      <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span>
+                      <h5 class="description-header">{{prev_close | currencyFormat}}</h5>
+                      <span class="description-text">PREV CLOSE</span>
+                    </div>
+                    <!-- /.description-block -->
+
+                    <!-- /.description-block -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-sm-2 col-6">
+                    <div class="description-block border-right">
+                      <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span>
+                      <h5 class="description-header">{{stock_data.info['regularMarketDayHigh'] | currencyFormat}}</h5>
+                      <span class="description-text">HIGH</span>
+                    </div>
+                    <!-- /.description-block -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-sm-2 col-6">
+                    <div class="description-block border-right">
+                      <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 2.3%</span>
+                      <h5 class="description-header">{{stock_data.info['regularMarketDayLow'] | currencyFormat}}</h5>
+                      <span class="description-text">LOW</span>
+                    </div>
+
+                    <!-- /.description-block -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-sm-2 col-6">
+                    <div class="description-block border-right">
+                      <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 3.7%</span>
+                      <h5 class="description-header">{{stock_data.info['regularMarketVolume'] | commaFormatINT}}</h5>
+                      <span class="description-text">VOL</span>
+                    </div>
+                    <!-- /.description-block -->
+
+                    <!-- /.description-block -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-sm-2 col-6">
+                    <div class="description-block">
+                      <span class="description-percentage text-danger"><i class="fas fa-caret-down"></i> 1.8%</span>
+                      <h5 class="description-header">{{stock_data.info['marketCap'] | currencyFormat}}</h5>
+                      <span class="description-text">MKT CAP</span>
+                    </div>
+                    <!-- /.description-block -->
+
+                  </div>
+                </div>
+                {%endif%}
+                <!-- /.row -->
+              </div>
+              <!-- /.card-footer -->
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+{%endif%}
+        <!-- Main row -->
+        <div class="row">
+          <!-- Left col -->
+          <div class="col-md-8">
+            <!-- MAP & BOX PANE -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Financial Statements Analysis & Sustainability</h3>
+
+                <div class="card-tools">
+                  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                </div>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body p-0">
+                <div class="d-md-flex">
+                  <div class="p-1 flex-fill" style="overflow: hidden">
+                    <!-- Map will be created here -->
+                    <!--<div id="world-map-markers" style="height: 325px; overflow: hidden">
+                      <div class="map"></div>
+                    </div> -->
+                    Under Development... 
+                  </div>
+                  
+                  <div class="card-pane-right bg-success pt-2 pb-2 pl-4 pr-4">
+                    {% if stock_data != None and sus_data | length  > 0 %}
+                    <div class="description-block mb-6">
+                      <div class="sparkbar pad" data-color="#fff">{{sus_data[21]}} percentile</div><br>
+                      <h5 class="description-header">{{sus_data[15]}}</h5>
+                      Total ESG Score
+                    </div>
+                    <!-- /.description-block -->
+                    <div class="description-block mb-6">
+                      <h5 class="description-header">{{sus_data[24]}}</h5>
+                      Environment Score
+                    </div>
+                    <div class="description-block mb-6">
+                      <h5 class="description-header">{{sus_data[3]}} {{stock_data.sustainability["socialScore"]}}</h5>
+                      Social Score
+                    </div>
+                  
+                    <!-- /.description-block -->
+                    <div class="description-block mb-6">
+                      <h5 class="description-header">{{sus_data[11]}}</h5>
+                      Governance Score
+                    </div>
+                    {%else%}
+                    No sustainability data found
+                    {%endif%}
+                    <!-- /.description-block -->
+                  </div><!-- /.card-pane-right -->
+                </div><!-- /.d-md-flex -->
+
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+            </div>
+
+            <div class="col-md-4">
+                <!-- Info Boxes Style 2 -->
+                <div class="info-box mb-3 bg-warning">
+                  <span class="info-box-icon"><i class="fas fa-globe"></i></span>
+    
+                  <div class="info-box-content">
+                    <span class="info-box-text">Overall Sentiment</span>                
+                    <span class="info-box-number">
+                      {% if sentiment >= -0.1 and sentiment <= 0.1 %}
+                        Neutral
+                      {% elif sentiment > 0.1 %}
+                        Positive
+                      {% else %}
+                        Negative
+                      {% endif%}
+                      ({{sentiment}})
+                    </span>
+                  </div>
+                  <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+                <div class="info-box mb-3 bg-success">
+                  <span class="info-box-icon"><i class="far fa-newspaper"></i></span>
+    
+                  <div class="info-box-content">
+                    <span class="info-box-text">News Sentiment</span>
+                    <span class="info-box-number">
+                      {% if news_sentiment >= -0.1 and news_sentiment <= 0.1 %}
+                        Neutral
+                      {% elif news_sentiment > 0.1 %}
+                        Positive
+                      {% else %}
+                        Negative
+                      {% endif%}
+                      ({{news_sentiment}})
+                    </span>
+                  </div>
+                  <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+                <div class="info-box mb-3 bg-danger">
+                  <span class="info-box-icon"><i class="fab fa-twitter"></i></span>
+    
+                  <div class="info-box-content">
+                    <span class="info-box-text">Tweets Sentiment</span>
+                    <span class="info-box-number">
+                      {% if tweets_sentiment >= -0.1 and tweets_sentiment <= 0.1 %}
+                      Neutral
+                      {% elif tweets_sentiment > 0.1 %}
+                        Positive
+                      {% else %}
+                        Negative
+                      {% endif%}
+                      ({{tweets_sentiment}})
+                    </span>
+                  </div>
+                  <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+                <div class="info-box mb-3 bg-info">
+                  {% if sentiment > 0 and (numBuy > numSell or numHold > numSell) %}
+                  <span class="info-box-icon"><i class="fas fa-arrow-up"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Prediction</span>
+                    <span class="info-box-number">
+                        BULL
+                      {%else%}
+                        <span class="info-box-icon"><i class="fas fa-arrow-down"></i></span>
+                        <div class="info-box-content">
+                        <span class="info-box-text">Prediction</span>
+                        <span class="info-box-number">
+                        BEAR
+                      {%endif%}
+                    </span>
+                  </div>
+                  <!-- /.info-box-content -->
+                </div>
+              </div>
+          </div>
+                <!-- /.info-box -->
+        <!-- BREAKING NEWs -->
+        <div class="row">
+          <div class="col-md-12">
+          <!-- Custom tabs (Charts with tabs)-->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="far fa-newspaper mr-1"></i>
+                Breaking News
+              </h3>
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div><!-- /.card-header -->
+            <div class="card-body table-responsive p-0" style="height: 500px;">
+              <div class="tab-content p-0">
+              <table class="table table-head-fixed text-nowrap">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Date Published</th>
+                    <th>Source</th>
+                    <th>Description</th>
+                    <th>Sentiment</th>
+                    <th>Link</th>
+                </tr>
+                </thead>
+          {% for article in top_news %}
+                <tr>
+                    <td>{{article[5]}}</td>
+                    <td>{{article[3]}}</td>
+                    <td>{{article[7].strftime('%Y-%m-%d')}}</td>
+                    <td>{{article[4]}}</td>
+                    <td>{{article[6]}}</td>
+                    <td>{{article[5]| getSentiment}}</td>
+                    <td><a href="{{article[9]}}" target="_blank">{{article[4]}}</a></td>
+                </tr>
+            {% endfor %}
+          </table>
+          </div>
+        </div>  
+        </div>
+        <!-- OTHER NEWs -->
+        <div class="row">
+          <div class="col-md-12">
+          <!-- Custom tabs (Charts with tabs)-->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-newspaper mr-1"></i>
+                Other News
+              </h3>
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div><!-- /.card-header -->
+            <div class="card-body table-responsive p-0" style="height: 500px;">
+              <div class="tab-content p-0">
+              <table class="table table-head-fixed text-nowrap">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Date Published</th>
+                    <th>Source</th>
+                    <th>Description</th>
+                    <th>Sentiment</th>
+                    <th>Link</th>
+                </tr>
+                </thead>
+            {% for article in all_news %}
+            <tr>
+              <td>{{article[5]}}</td>
+              <td>{{article[3]}}</td>
+              <td>{{article[7].strftime('%Y-%m-%d')}}</td>
+              <td>{{article[4]}}</td>
+              <td>{{article[6]}}</td>
+              <td>{{article[5] | getSentiment}}</td>
+              <td><a href="{{article[9]}}" target="_blank">{{article[4]}}</a></td>
+            </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>  
+      </div>
+        
+
+        <!-- TWEETS -->
+        <div class="row">
+          <div class="col-md-12">
+          <!-- Custom tabs (Charts with tabs)-->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fab fa-twitter mr-1"></i>
+                Tweets
+              </h3>
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div><!-- /.card-header -->
+            <div class="card-body table-responsive p-0" style="height: 490px;">
+              <div class="tab-content p-0">
+                <table class="table table-head-fixed text-nowrap">
+                  <thead>
+                  <tr>
+                      <th>User</th>
+                      <th>Location</th>
+                      <th>Followers</th>
+                      <th>Tweet</th>
+                      <th>Sentiment</th>
+                  </tr>
+                  </thead>
+                {% for tweet in tweets %}
+                  <tr>
+                      <td>{{tweet.user.screen_name}}</td>
+                      <td> {{tweet.user.location}}</td>
+                      <td>{{tweet.user.friends_count + tweet.user.followers_count}}</td>
+                      <td>{{tweet.text}}</td>
+                      <td>{{tweet.text | getSentiment}}</td>
+                  </tr>
+              {% endfor %}
+          </table>
+          </div><!-- /.card-body -->
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script type="text/javascript">
+  var price_data_1d = {{price_hist[0] | tojson}};
+  var price_data_5d = {{price_hist[1] | tojson}};
+  var price_data_1m = {{price_hist[2] | tojson}};
+  var price_data_3m = {{price_hist[3] | tojson}};
+  var price_data_6m = {{price_hist[4] | tojson}};
+  var price_data_ytd = {{price_hist[5] | tojson}};
+  var price_data_1yr = {{price_hist[6] | tojson}};
+  var price_data_3yr = {{price_hist[7] | tojson}};
+  var price_data_5yr = {{price_hist[8] | tojson}};
+  var price_data_max = {{price_hist[9] | tojson}};
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+<title>Stocks Master</title>
+{% endblock %}
+
+{% block content %}
+		<!-- Content Wrapper. Contains page content -->
+		<div class="content-wrapper">
+			<!-- Content Header (Page header) -->
+			<div class="content-header">
+			<div class="container-fluid">
+				<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0 text-dark">Home</h1>
+				</div><!-- /.col -->
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+					<li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+					<li class="breadcrumb-item active"></li>
+					</ol>
+				</div><!-- /.col -->
+				</div><!-- /.row -->
+			</div><!-- /.container-fluid -->
+			</div>
+			<!-- /.content-header -->
+			    <!-- Main content -->
+                <section class="content">
+                    <div class="container-fluid">
+            <div class="row">
+            <section class="col-lg-12">
+              <!-- Custom tabs (Charts with tabs)-->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-chart-pie mr-1"></i>
+                    Update Stock
+                  </h3>
+                  <div class="card-tools">
+                  </div>
+                </div><!-- /.card-header -->
+                <div class="card-body">
+                <div class="tab-content p-0">
+                <div class="form">
+                    <form action="/update/{{stock[0]}}" method="POST">
+                            Stock Ticker: <input type="text" name="ticker" id="ticker" value="{{stock[2]}}">
+                            Company Name: <input type="text" name="name" id="name" value="{{stock[3]}}">
+                        <input type="submit" value="Update">
+                    </form>
+                </div>
+            </div>
+        </section>
+        </div>
+    </div>
+</div><!-- /.card-body -->
+{% endblock %}
